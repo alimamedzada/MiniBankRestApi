@@ -32,7 +32,10 @@ public class Customers extends Person implements Serializable {
     private List<Accounts> accounts = new ArrayList<>();
 
     public Customers() {
-
+        if (accounts.isEmpty()) {
+            Accounts acc = new CheckingAccount();
+            addAccount(acc);
+        }
     }
 
     public String getCustomerId() {
