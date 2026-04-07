@@ -13,6 +13,10 @@ import org.springframework.beans.factory.annotation.Value;
 @Component
 public class JwtUtil {
 
+    public JwtUtil() {
+        System.out.println("JwtUtil called");
+    }
+
     @Value("${jwt.secret}")
     private String SECRET_KEY;
     private SecretKey key;

@@ -14,6 +14,13 @@ import org.springframework.beans.factory.annotation.Value;
 @Component
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
+<<<<<<< HEAD
+=======
+    public OAuth2LoginSuccessHandler() {
+        System.out.println("OAuth2LoginSuccessHandler called!");
+    }
+
+>>>>>>> 876dd8f (feat(security): integrate google oauth2 with custom jwt success handler)
     @Autowired
     private JwtUtil jwtUtil;
 
@@ -23,7 +30,10 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
             Authentication authentication) throws IOException, ServletException {
+<<<<<<< HEAD
 
+=======
+>>>>>>> 876dd8f (feat(security): integrate google oauth2 with custom jwt success handler)
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         String email = oAuth2User.getAttribute("email");
 

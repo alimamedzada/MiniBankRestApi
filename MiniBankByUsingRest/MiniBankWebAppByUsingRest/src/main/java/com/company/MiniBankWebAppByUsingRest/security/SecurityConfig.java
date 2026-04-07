@@ -17,11 +17,19 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
+    public SecurityConfig() {
+        System.out.println("SecurityConfig called");
+    }
+
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
 
     @Autowired
     private CustomOAuth2UserService customOAuth2UserService;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 876dd8f (feat(security): integrate google oauth2 with custom jwt success handler)
     @Autowired
     private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 

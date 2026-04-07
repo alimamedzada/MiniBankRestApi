@@ -13,6 +13,10 @@ import java.util.ArrayList;
 @Service
 public class MyUserDetailsService implements UserDetailsService {
 
+    public MyUserDetailsService() {
+        System.out.println("MyUserDetailsService called");
+    }
+
     @Autowired
     private CustomerServiceInter customerService;
 

@@ -2,6 +2,10 @@ package com.company.MiniBankWebAppByUsingRest.security;
 
 public class AuthenticationRequest {
 
+    public AuthenticationRequest() {
+        System.out.println("AuthenticationRequest called");
+    }
+
     private String username;
     private String password;
 
