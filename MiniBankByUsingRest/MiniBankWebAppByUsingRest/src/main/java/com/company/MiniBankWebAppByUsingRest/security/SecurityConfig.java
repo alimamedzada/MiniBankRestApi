@@ -26,10 +26,7 @@ public class SecurityConfig {
 
     @Autowired
     private CustomOAuth2UserService customOAuth2UserService;
-<<<<<<< HEAD
-=======
 
->>>>>>> 876dd8f (feat(security): integrate google oauth2 with custom jwt success handler)
     @Autowired
     private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
