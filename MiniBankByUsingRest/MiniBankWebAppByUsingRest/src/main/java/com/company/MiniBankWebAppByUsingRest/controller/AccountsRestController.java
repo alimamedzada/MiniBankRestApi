@@ -1,5 +1,7 @@
 package com.company.MiniBankWebAppByUsingRest.controller;
 
+import com.company.MiniBankByUsingSpring.entity.Accounts;
+import com.company.MiniBankByUsingSpring.entity.Customers;
 import com.company.MiniBankByUsingSpring.service.inter.AccountServiceInter;
 import com.company.MiniBankByUsingSpring.service.inter.CustomerServiceInter;
 import com.company.MiniBankWebAppByUsingRest.dto.AccountsDTO;
@@ -9,6 +11,8 @@ import com.company.MiniBankWebAppByUsingRest.dto.CustomersDTO;
 import com.company.MiniBankWebAppByUsingRest.dto.ResponseDTO;
 import com.company.MiniBankWebAppByUsingRest.mapper.AccountsMapper;
 import com.company.MiniBankWebAppByUsingRest.mapper.CustomersMapper;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
@@ -36,9 +40,11 @@ public class AccountsRestController {
 
     @GetMapping("/accounts")
     public ResponseEntity<ResponseDTO> getAccountsPage(Principal principal) {
-        CustomersDTO customer = cMapper.toDto(cService.findCustomerByUsername(principal.getName()));
+        CustomersDTO customer = cMapper.toDto(
+                cService.findCustomerByUsername(principal.getName()));
 
-        BigDecimal totalBalance = cService.getTotalBalance(customer.getCustomerId());
+        BigDecimal totalBalance = cService.getTotalBalance(
+                customer.getCustomerId());
         List<AccountsDTO> list = customer.getAccounts();
         AccountsResponseDTO asDto = new AccountsResponseDTO();
 
@@ -49,16 +55,27 @@ public class AccountsRestController {
     }
 
     @GetMapping("/accounts/{id}")
-    public ResponseEntity<ResponseDTO> getAccountDetails(@PathVariable String id) {
+    public ResponseEntity<ResponseDTO> getAccountDetails(
+            @PathVariable @NotBlank(message = "ID boş olamaz!") String id) {
+
         AccountsDTO account = aMapper.toDto(aService.findAccountById(id));
 
         return ResponseEntity.ok(ResponseDTO.of(account));
     }
 
     @PostMapping("/create-new-account")
-    public ResponseEntity<ResponseDTO> openAccount(@RequestBody CreateAccountDTO cadto, Principal principal) {
+    public ResponseEntity<ResponseDTO> openAccount(
+            @Valid @RequestBody CreateAccountDTO cadto, Principal principal) {
 
-        aService.createAccountByUsername(principal.getName(), cadto.getAccountType(), cadto.getBalance());
-        return ResponseEntity.ok(ResponseDTO.of(null, "New Account has been successfully created!"));
+        Customers customer = (cService.findCustomerByUsername(
+                principal.getName()));
+
+        Accounts acc = aService.createAccount(
+                cadto.getAccountType(), cadto.getBalance());
+
+        customer.addAccount(acc);
+
+        return ResponseEntity.ok(ResponseDTO.of(
+                null, "New Account has been successfully created!"));
     }
 }

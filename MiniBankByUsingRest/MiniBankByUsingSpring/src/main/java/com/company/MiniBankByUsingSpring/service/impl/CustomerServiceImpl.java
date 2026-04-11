@@ -2,8 +2,8 @@ package com.company.MiniBankByUsingSpring.service.impl;
 
 import com.company.MiniBankByUsingSpring.entity.Accounts;
 import com.company.MiniBankByUsingSpring.entity.Customers;
-import com.company.MiniBankByUsingSpring.repository.AccountRepository;
 import com.company.MiniBankByUsingSpring.repository.CustomerRepository;
+import com.company.MiniBankByUsingSpring.service.inter.AccountServiceInter;
 import com.company.MiniBankByUsingSpring.service.inter.CustomerServiceInter;
 import com.company.MiniBankByUsingSpring.util.IdentifierUtil;
 import jakarta.transaction.Transactional;
@@ -18,24 +18,33 @@ import org.springframework.stereotype.Service;
 @Transactional
 public class CustomerServiceImpl implements CustomerServiceInter {
 
-
     @Autowired
     private CustomerRepository cRepository;
 
     @Autowired
-    private AccountRepository aRepository;
+    private AccountServiceInter aService;
 
     @Override
     public boolean addCustomer(Customers customer) {
-
-        String rawPassword = customer.getPassword();
-        String hashed = hashPassword(rawPassword);
 
         if (customer.getCustomerId() == null || customer.getCustomerId().isEmpty()) {
             String generatedId = IdentifierUtil.generateId(10);
             customer.setCustomerId(generatedId);
         }
-        customer.setPassword(hashed);
+        return addCustomer(customer, "CHECKING");
+    }
+
+    @Override
+    public boolean addCustomer(Customers customer, String accountType) {
+
+        if (customer.getCustomerId() == null || customer.getCustomerId().isEmpty()) {
+            String generatedId = IdentifierUtil.generateId(10);
+            customer.setCustomerId(generatedId);
+        }
+        Accounts acc = aService.createAccount(accountType, BigDecimal.ZERO);
+
+        customer.addAccount(acc);
+
         cRepository.save(customer);
         return true;
     }
@@ -50,11 +59,6 @@ public class CustomerServiceImpl implements CustomerServiceInter {
     public boolean deleteCustomerById(String id) {
         cRepository.deleteById(id);
         return true;
-    }
-
-    private String hashPassword(String password) {
-        return password;
-
     }
 
     @Override

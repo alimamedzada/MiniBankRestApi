@@ -7,21 +7,19 @@ import java.util.List;
 
 public interface AccountServiceInter {
 
-    void createAccountByUsername(String username, String accountType, BigDecimal balance);
-
-    Accounts findAccount(Customers customer, String accNum);
+    Accounts createAccount(String accountType, BigDecimal balance);
 
     boolean deleteAccount(String id);
 
     List<Accounts> showAccounts(Customers customer);
 
-    boolean updateAccount(Customers customer, String accId);
+    boolean updateAccount(Accounts account);
 
     Accounts findAccountById(String id);
 
     boolean transfer(String fromAccId, String toIban, BigDecimal amount, String description);
 
-    List<Accounts> findAccountByCustomerId(String customerId);
+    List<Accounts> findAllByCustomerId(String customerId);
 
     boolean qucikTransfer(String customerId, String toIban, BigDecimal amount);
 

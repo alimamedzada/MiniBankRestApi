@@ -40,7 +40,7 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             try {
                 username = jwtUtil.extractUsername(jwt);
             } catch (Exception e) {
-                System.out.println("Token parse edilemedi veya geçersiz: " + e.getMessage());
+                System.out.println("Invalid Token: " + e.getMessage());
             }
         }
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

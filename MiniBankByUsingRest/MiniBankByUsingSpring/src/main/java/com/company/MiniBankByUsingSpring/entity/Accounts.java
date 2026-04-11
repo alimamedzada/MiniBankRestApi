@@ -96,8 +96,8 @@ public class Accounts implements Serializable {
         return customer;
     }
 
-    public void setCustomer(Customers customerId) {
-        this.customer = customerId;
+    public void setCustomer(Customers customer) {
+        this.customer = customer;
     }
 
     public List<Transaction> getTransactions() {

@@ -9,9 +9,9 @@ import com.company.MiniBankByUsingSpring.exception.InsufficientBalanceException;
 import com.company.MiniBankByUsingSpring.exception.InvalidAccountException;
 import com.company.MiniBankByUsingSpring.exception.InvalidAmountException;
 import com.company.MiniBankByUsingSpring.repository.AccountRepository;
+import com.company.MiniBankByUsingSpring.repository.CustomerRepository;
 import com.company.MiniBankByUsingSpring.service.inter.AccountOperationsInter;
 import com.company.MiniBankByUsingSpring.service.inter.AccountServiceInter;
-import com.company.MiniBankByUsingSpring.service.inter.CustomerServiceInter;
 import com.company.MiniBankByUsingSpring.service.inter.TransactionServiceInter;
 import com.company.MiniBankByUsingSpring.util.IdentifierUtil;
 import jakarta.transaction.Transactional;
@@ -27,32 +27,26 @@ public class AccountServiceImpl implements AccountServiceInter, AccountOperation
     @Autowired
     private TransactionServiceInter transactionService;
     @Autowired
-    private CustomerServiceInter customerService;
+    private CustomerRepository cRepo;
 
     @Autowired
-    private AccountRepository accountRepository;
+    private AccountRepository aRepo;
 
     @Override
-    public void createAccountByUsername(String username, String accountType, BigDecimal balance) {
-        Customers customer = customerService.findCustomerByUsername(username);
+    public Accounts createAccount(String accountType,
+            BigDecimal balance) {
         Accounts account;
-        if (accountType.equalsIgnoreCase("CHECKING")) {
-            account = new CheckingAccount(balance);
-        } else if (accountType.equalsIgnoreCase("SAVINGS")) {
+
+        if (accountType.equalsIgnoreCase("SAVINGS")) {
             account = new SavingsAccount(balance);
         } else {
             account = new CheckingAccount(balance);
         }
+
         account.setId(IdentifierUtil.generateAzerbaijanIBANId());
         account.setBalance(balance);
-        if (customer != null) {
-            customer.addAccount(account);
-        }
 
-    }
-
-    public Accounts findAccount(Customers customer, String accNum) {
-        return accountRepository.findById(accNum).orElseThrow();
+        return account;
     }
 
     @Override
@@ -62,64 +56,86 @@ public class AccountServiceImpl implements AccountServiceInter, AccountOperation
 
     @Override
     public boolean deleteAccount(String id) {
-        accountRepository.deleteById(id);
+        if (aRepo.findById(id).isEmpty()) {
+            return false;
+        }
+        aRepo.deleteById(id);
         return true;
     }
 
     @Override
-    public boolean updateAccount(Customers c, String accId) {
-        Accounts acc = findAccount(c, accId);
-        accountRepository.save(acc);
-        return true;
+    public boolean updateAccount(Accounts account) {
+        Accounts saved = aRepo.save(account);
+        return saved != null;
+    }
+
+    @Override
+    public Accounts findAccountById(String id) {
+        return aRepo.findById(id).orElse(null);
+    }
+
+    @Override
+    public List<Accounts> findAllByCustomerId(String customerId) {
+        return aRepo.findAllByCustomerId(customerId);
     }
 
     @Override
     public void deposit(String accId, BigDecimal amount) {
-        Accounts acc = accountRepository.findById(accId).orElseThrow();
+        Accounts acc = findAccountById(accId);
+        if (acc == null) {
+            throw new InvalidAccountException("account not found!");
+        }
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidAmountException("The amount cannot be zero or negative!");
+            throw new InvalidAmountException(
+                    "The amount cannot be zero or negative!");
         }
         acc.setBalance(acc.getBalance().add(amount));
         acc.showBalance();
-        transactionService.createTransaction(accId, "SELF", amount, "self-cash");
 
     }
 
     @Override
     public void withdraw(String accId, BigDecimal amount) {
-        Accounts acc = accountRepository.findById(accId).orElseThrow();
+        Accounts acc = findAccountById(accId);
+
+        if (acc == null) {
+            throw new InvalidAccountException("account not found!");
+        }
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new InvalidAmountException("The amount cannot be negative!");
+            throw new InvalidAmountException("The amount can't be negative!");
         }
         if (amount.compareTo(acc.getBalance()) > 0) {
-            throw new InsufficientBalanceException("You don't have enough balance in your account!" + acc.getBalance());
+            throw new InsufficientBalanceException(
+                    "You don't have enough balance in your account!"
+                    + acc.getBalance());
         }
         acc.setBalance(acc.getBalance().subtract(amount));
         acc.showBalance();
 
-        transactionService.createTransaction(accId, "SELF", amount, "self-cash");
     }
 
     @Transactional
     @Override
-    public boolean transfer(String fromAccId, String toIban, BigDecimal amount, String description) {
-        Accounts fromAcc = accountRepository.findAccountById(fromAccId);
-        Accounts toAcc = accountRepository.findAccountById(toIban);
+    public boolean transfer(String fromAccId, String toIban, BigDecimal amount,
+            String description) {
+        Accounts fromAcc = findAccountById(fromAccId);
+        Accounts toAcc = findAccountById(toIban);
         if (fromAcc == null) {
             throw new InvalidAccountException("Sender account not found!");
+        }
+        if (toAcc == null) {
+            throw new InvalidAccountException("Reciever account not found!");
         }
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidAmountException("Transfer amount must be positive!");
         }
         if (amount.compareTo(fromAcc.getBalance()) > 0) {
-            throw new InsufficientBalanceException("Insufficent Balance! Your balance: " + fromAcc.getBalance());
+            throw new InsufficientBalanceException(
+                    "Insufficent Balance! Your balance: " + fromAcc.getBalance());
         }
 
-        if (toAcc == null) {
-            throw new InvalidAccountException("Reciever account not found!");
-        }
-        fromAcc.setBalance(fromAcc.getBalance().subtract(amount));
-        toAcc.setBalance(toAcc.getBalance().add(amount));
+        withdraw(fromAcc.getId(), amount);
+        deposit(toAcc.getId(), amount);
 
         Transaction t = transactionService.createTransaction(
                 fromAccId,
@@ -127,14 +143,13 @@ public class AccountServiceImpl implements AccountServiceInter, AccountOperation
                 amount,
                 description
         );
-        if (!(fromAcc.getCustomer().getCustomerId().equals(toAcc.getCustomer().getCustomerId()))) {
+        if (!(fromAcc.getCustomer().getCustomerId()
+                .equals(toAcc.getCustomer().getCustomerId()))) {
             toAcc.getTransactions().add(t);
         } else {
             fromAcc.getTransactions().add(t);
         }
         transactionService.addTransaction(t);
-        accountRepository.save(fromAcc);
-        accountRepository.save(toAcc);
 
         return true;
     }
@@ -142,7 +157,7 @@ public class AccountServiceImpl implements AccountServiceInter, AccountOperation
     @Transactional
     @Override
     public boolean qucikTransfer(String customerId, String toIban, BigDecimal amount) {
-        List<Accounts> accounts = accountRepository.findAllByCustomerId(customerId);
+        List<Accounts> accounts = aRepo.findAllByCustomerId(customerId);
         System.out.println("acoounts list= " + accounts == null);
         Accounts sourceAccount = null;
         for (Accounts acc : accounts) {
@@ -154,19 +169,10 @@ public class AccountServiceImpl implements AccountServiceInter, AccountOperation
         if (sourceAccount != null) {
             transfer(sourceAccount.getId(), toIban, amount, "Quick Transfer");
         } else {
-            throw new InsufficientBalanceException("None of your accounts had sufficient funds.");
+            throw new InsufficientBalanceException(
+                    "None of your accounts had sufficient funds.");
         }
         return true;
-    }
-
-    @Override
-    public Accounts findAccountById(String id) {
-        return accountRepository.findAccountById(id);
-    }
-
-    @Override
-    public List<Accounts> findAccountByCustomerId(String customerId) {
-        return accountRepository.findAllByCustomerId(customerId);
     }
 }
 

@@ -1,5 +1,8 @@
 package com.company.MiniBankWebAppByUsingRest.dto;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -7,13 +10,18 @@ import java.util.List;
 
 public class AccountsDTO {
 
-    private String id;
+    @Min(value = 0, message = "Initial Balance can't be less than zero!")
     private BigDecimal balance;
+
+    private String id;
     private Date createDate;
     private String customerId;
     private List<TransactionDTO> transactions = new ArrayList<>();
-    private String accountType;
     private String customerUsername;
+
+    @NotNull
+    @NotBlank(message = "Account Type can't blank!")
+    private String accountType;
 
     public AccountsDTO() {
     }

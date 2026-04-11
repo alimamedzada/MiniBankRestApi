@@ -8,6 +8,8 @@ public interface CustomerServiceInter {
 
     boolean addCustomer(Customers customer);
 
+    boolean addCustomer(Customers customer, String accountType);
+
     Customers getCustomerById(String id);
 
     Customers findCustomerByUsername(String username);

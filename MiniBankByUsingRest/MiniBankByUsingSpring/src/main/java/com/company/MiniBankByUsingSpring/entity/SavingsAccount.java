@@ -5,11 +5,11 @@ import jakarta.persistence.Entity;
 import java.math.BigDecimal;
 
 @Entity
-@DiscriminatorValue("Savings")
+@DiscriminatorValue("SAVINGS")
 public class SavingsAccount extends Accounts {
 
     public SavingsAccount() {
-        super();
+        this(BigDecimal.ZERO);
     }
 
     public SavingsAccount(BigDecimal balance) {
