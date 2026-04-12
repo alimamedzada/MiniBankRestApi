@@ -80,8 +80,7 @@ public class AccountServiceImpl implements AccountServiceInter, AccountOperation
     }
 
     @Override
-    public void deposit(String accId, BigDecimal amount) {
-        Accounts acc = findAccountById(accId);
+    public void deposit(Accounts acc, BigDecimal amount) {
         if (acc == null) {
             throw new InvalidAccountException("account not found!");
         }
@@ -95,9 +94,7 @@ public class AccountServiceImpl implements AccountServiceInter, AccountOperation
     }
 
     @Override
-    public void withdraw(String accId, BigDecimal amount) {
-        Accounts acc = findAccountById(accId);
-
+    public void withdraw(Accounts acc, BigDecimal amount) {
         if (acc == null) {
             throw new InvalidAccountException("account not found!");
         }
@@ -134,8 +131,8 @@ public class AccountServiceImpl implements AccountServiceInter, AccountOperation
                     "Insufficent Balance! Your balance: " + fromAcc.getBalance());
         }
 
-        withdraw(fromAcc.getId(), amount);
-        deposit(toAcc.getId(), amount);
+        withdraw(fromAcc, amount);
+        deposit(toAcc, amount);
 
         Transaction t = transactionService.createTransaction(
                 fromAccId,
@@ -143,12 +140,6 @@ public class AccountServiceImpl implements AccountServiceInter, AccountOperation
                 amount,
                 description
         );
-        if (!(fromAcc.getCustomer().getCustomerId()
-                .equals(toAcc.getCustomer().getCustomerId()))) {
-            toAcc.getTransactions().add(t);
-        } else {
-            fromAcc.getTransactions().add(t);
-        }
         transactionService.addTransaction(t);
 
         return true;
@@ -158,7 +149,7 @@ public class AccountServiceImpl implements AccountServiceInter, AccountOperation
     @Override
     public boolean qucikTransfer(String customerId, String toIban, BigDecimal amount) {
         List<Accounts> accounts = aRepo.findAllByCustomerId(customerId);
-        System.out.println("acoounts list= " + accounts == null);
+
         Accounts sourceAccount = null;
         for (Accounts acc : accounts) {
             if (acc.getBalance().compareTo(amount) >= 0) {

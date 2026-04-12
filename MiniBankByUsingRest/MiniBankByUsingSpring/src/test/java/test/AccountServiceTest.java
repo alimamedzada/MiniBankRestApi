@@ -287,9 +287,7 @@ public class AccountServiceTest {
         acc.setBalance(initialBalance);
         acc.setId(fakeAccId);
 
-        Mockito.when(aRepo.findById(fakeAccId)).thenReturn(Optional.of(acc));
-
-        aService.deposit(fakeAccId, depositAmount);
+        aService.deposit(acc, depositAmount);
 
         Assertions.assertEquals(new BigDecimal("600"), acc.getBalance(),
                 "account tapilmalidir");
@@ -304,9 +302,8 @@ public class AccountServiceTest {
         Accounts acc = new Accounts();
         acc.setId(fakeAccId);
 
-        Mockito.when(aRepo.findById(fakeAccId)).thenReturn(Optional.of(acc));
         Assertions.assertThrows(InvalidAmountException.class, () -> {
-            aService.deposit(fakeAccId, negative);
+            aService.deposit(acc, negative);
         }, "mebleg menfi ola bilmez");
     }
 
@@ -314,10 +311,11 @@ public class AccountServiceTest {
     public void testDeposit_ShouldThrowException_WhenAccountNull() {
         String fakeAccId = "1";
 
-        Mockito.when(aRepo.findById(fakeAccId)).thenReturn(Optional.empty());
+        Accounts acc = new Accounts();
+        acc.setId(fakeAccId);
 
         Assertions.assertThrows(InvalidAccountException.class, () -> {
-            aService.deposit(fakeAccId, BigDecimal.ONE);
+            aService.deposit(null, BigDecimal.ONE);
         },
                 "account yoxdu, exception atmalidir"
         );
@@ -332,9 +330,7 @@ public class AccountServiceTest {
         acc.setId(fakeId);
         acc.setBalance(new BigDecimal("500"));
 
-        Mockito.when(aRepo.findById(fakeId)).thenReturn(Optional.of(acc));
-
-        aService.withdraw(fakeId, amount);
+        aService.withdraw(acc, amount);
 
         Assertions.assertTrue(
                 new BigDecimal("400").compareTo(acc.getBalance()) == 0,
@@ -350,10 +346,8 @@ public class AccountServiceTest {
         acc.setId(fakeId);
         acc.setBalance(new BigDecimal("500"));
 
-        Mockito.when(aRepo.findById(fakeId)).thenReturn(Optional.of(acc));
-
         Assertions.assertThrows(InsufficientBalanceException.class, () -> {
-            aService.withdraw(fakeId, amount);
+            aService.withdraw(acc, amount);
         }, "amount balans'dan boyuk ola bilmez!");
     }
 
@@ -366,10 +360,8 @@ public class AccountServiceTest {
         acc.setId(fakeId);
         acc.setBalance(new BigDecimal("500"));
 
-        Mockito.when(aRepo.findById(fakeId)).thenReturn(Optional.of(acc));
-
         Assertions.assertThrows(InvalidAmountException.class, () -> {
-            aService.withdraw(fakeId, amount);
+            aService.withdraw(acc, amount);
         }, "amount menfi ola bilmez!");
     }
 
@@ -377,10 +369,11 @@ public class AccountServiceTest {
     public void testWithdraw_ThrowException_WhenAccountNull() {
         String fakeId = "1";
 
-        Mockito.when(aRepo.findById(fakeId)).thenReturn((Optional.empty()));
+        Accounts acc = new Accounts();
+        acc.setId(fakeId);
 
         Assertions.assertThrows(InvalidAccountException.class, () -> {
-            aService.withdraw(fakeId, BigDecimal.ONE);
+            aService.withdraw(null, BigDecimal.ONE);
         }, "account null ola bilmez!");
     }
 

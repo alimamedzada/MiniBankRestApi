@@ -1,11 +1,12 @@
 package com.company.MiniBankByUsingSpring.service.inter;
 
+import com.company.MiniBankByUsingSpring.entity.Accounts;
 import java.math.BigDecimal;
 
 public interface AccountOperationsInter {
 
-    void deposit(String accId,BigDecimal amount);
+    void deposit(Accounts acc, BigDecimal amount);
 
-    void withdraw(String accId,BigDecimal amount);
+    void withdraw(Accounts acc, BigDecimal amount);
 
 }
