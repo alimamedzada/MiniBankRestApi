@@ -26,7 +26,8 @@ public class TransactionServiceImpl implements TransactionServiceInter {
     private AccountRepository aRepository;
 
     @Override
-    public Transaction createTransaction(String fromAccountId, String toIban, BigDecimal amount, String description) {
+    public Transaction createTransaction(String fromAccountId, String toIban,
+            BigDecimal amount, String description) {
         Optional<Accounts> fromAcc = aRepository.findById(fromAccountId);
         Optional<Accounts> toAcc = aRepository.findById(toIban);
 
@@ -73,13 +74,15 @@ public class TransactionServiceImpl implements TransactionServiceInter {
     }
 
     @Override
-    public List<Transaction> getRecentTransactionsByCustomerId(String customerId, int limit) {
+    public List<Transaction> getRecentTransactionsByCustomerId(
+            String customerId, int limit) {
         List<Accounts> accounts = aRepository.findAllByCustomerId(customerId);
         List<String> accIds = new ArrayList<>();
         for (Accounts acc : accounts) {
             accIds.add(acc.getId());
         }
-        return tRepository.findCustomerTransactionHistory(accIds, Pageable.ofSize(limit));
+        return tRepository.findCustomerTransactionHistory(
+                accIds, Pageable.ofSize(limit));
     }
 
 }

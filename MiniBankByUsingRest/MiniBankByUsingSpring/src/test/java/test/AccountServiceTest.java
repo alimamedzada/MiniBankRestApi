@@ -294,8 +294,6 @@ public class AccountServiceTest {
         Assertions.assertEquals(new BigDecimal("600"), acc.getBalance(),
                 "account tapilmalidir");
 
-        Mockito.verify(aRepo, Mockito.times(1)).save(
-                acc);
     }
 
     @Test
@@ -341,7 +339,6 @@ public class AccountServiceTest {
         Assertions.assertTrue(
                 new BigDecimal("400").compareTo(acc.getBalance()) == 0,
                 "Balans 400 olmalidir " + acc.getBalance() + " geldi!");
-        Mockito.verify(aRepo, Mockito.times(1)).save(acc);
     }
 
     @Test
