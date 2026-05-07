@@ -1,0 +1,53 @@
+package com.company.MiniBankWebAppByUsingRest.controller;
+
+import com.company.MiniBankByUsingSpring.service.inter.CustomerServiceInter;
+import com.company.MiniBankByUsingSpring.service.inter.TransactionServiceInter;
+import com.company.MiniBankWebAppByUsingRest.dto.ResponseDTO;
+import com.company.MiniBankWebAppByUsingRest.mapper.CustomersMapper;
+import com.company.MiniBankWebAppByUsingRest.mapper.TransactionMapper;
+import com.company.MiniBankWebAppByUsingRest.security.AuthenticationRequest;
+import com.company.MiniBankWebAppByUsingRest.security.JwtUtil;
+import com.company.MiniBankWebAppByUsingRest.security.MyUserDetailsService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+@CrossOrigin(origins = "*")
+@RestController
+public class LoginRestController {
+
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+    private final MyUserDetailsService userDetailsService;
+
+    public LoginRestController(AuthenticationManager authenticationManager, JwtUtil jwtUtil, CustomersMapper cMapper, MyUserDetailsService userDetailsService){
+        this.authenticationManager=authenticationManager;
+        this.jwtUtil= jwtUtil;
+        this.userDetailsService=userDetailsService;
+    }
+
+    @PostMapping("/api/authenticate")
+    public ResponseEntity<ResponseDTO> createAuthenticationToken(@RequestBody AuthenticationRequest authRequest) throws Exception {
+
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword())
+            );
+        } catch (BadCredentialsException e) {
+            throw new Exception("Hatalı kullanıcı adı veya şifre", e);
+        }
+
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getUsername());
+
+        final String jwt = jwtUtil.generateToken(userDetails.getUsername());
+
+        return ResponseEntity.ok(ResponseDTO.of(jwt, "JWT is created!"));
+    }
+}
